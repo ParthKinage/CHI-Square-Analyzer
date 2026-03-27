@@ -1,0 +1,16 @@
+# Render.com deployment (render.yaml equivalent)
+# Place this at the root of your repository
+
+services:
+  - type: web
+    name: chi-square-analyzer
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5000

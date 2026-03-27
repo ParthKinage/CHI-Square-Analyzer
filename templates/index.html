@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chi-Square Goodness-of-Fit Test Calculator — interactive statistical analysis tool for Engineering Mathematics IV, VIT Mumbai.">
+    <title>χ² Chi-Square Test Analyzer | EM-IV Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-symbol">χ²</span>
+                <div class="logo-text">
+                    <span class="logo-title">Chi-Square Analyzer</span>
+                    <span class="logo-subtitle">Goodness-of-Fit Test</span>
+                </div>
+            </div>
+            <nav class="nav">
+                <a href="#calculator" class="nav-link active" data-section="calculator">Calculator</a>
+                <a href="#theory" class="nav-link" data-section="theory">Theory</a>
+                <a href="#about" class="nav-link" data-section="about">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Hero Section -->
+        <section class="hero" id="hero">
+            <div class="hero-content">
+                <div class="hero-badge">Engineering Mathematics IV — BSC07</div>
+                <h1 class="hero-title">
+                    <span class="hero-title-line">Chi-Square</span>
+                    <span class="hero-title-line gradient-text">Goodness-of-Fit</span>
+                    <span class="hero-title-line">Test Analyzer</span>
+                </h1>
+                <p class="hero-desc">
+                    Interactive statistical analysis tool for testing whether observed data
+                    follows an expected distribution. Built for VIT Mumbai EM-IV Mini Project.
+                </p>
+                <div class="hero-actions">
+                    <a href="#calculator" class="btn btn-primary" id="hero-start-btn">
+                        <span>Start Analyzing</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="#theory" class="btn btn-ghost" id="hero-theory-btn">
+                        <span>Learn Theory</span>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-value" id="stat-tests">0</span>
+                        <span class="hero-stat-label">Tests Run</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">5</span>
+                        <span class="hero-stat-label">Sample Datasets</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">α=0.05</span>
+                        <span class="hero-stat-label">Significance Level</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculator Section -->
+        <section class="section" id="calculator">
+            <div class="section-header">
+                <h2 class="section-title">Calculator</h2>
+                <p class="section-desc">Enter observed and expected frequencies to perform the χ² test</p>
+            </div>
+
+            <div class="calculator-grid">
+                <!-- Input Panel -->
+                <div class="card card-input" id="input-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                            Input Data
+                        </h3>
+                        <div class="card-actions">
+                            <button class="btn-icon" id="btn-add-row" title="Add category">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                            </button>
+                            <button class="btn-icon" id="btn-remove-row" title="Remove last category">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
+                            </button>
+                            <button class="btn-icon" id="btn-clear" title="Clear all">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sample Dataset Selector -->
+                    <div class="sample-selector">
+                        <label class="label">Load Sample Dataset</label>
+                        <div class="sample-chips" id="sample-chips">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="data-table-wrapper">
+                        <table class="data-table" id="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="th-category">Category</th>
+                                    <th class="th-observed">Observed (O)</th>
+                                    <th class="th-expected">Expected Proportion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="input-footer">
+                        <div class="totals">
+                            <span class="total-label">Total Observed:</span>
+                            <span class="total-value" id="total-observed">0</span>
+                        </div>
+                        <button class="btn btn-primary btn-calculate" id="btn-calculate">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span>Run χ² Test</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="card card-results hidden" id="results-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Results
+                        </h3>
+                    </div>
+
+                    <!-- Decision Banner -->
+                    <div class="decision-banner" id="decision-banner">
+                        <div class="decision-icon" id="decision-icon"></div>
+                        <div class="decision-text">
+                            <span class="decision-label" id="decision-label"></span>
+                            <span class="decision-detail" id="decision-detail"></span>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">χ² Statistic</span>
+                            <span class="stat-value" id="result-chi2">—</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">p-value</span>
+                            <span class="stat-value" id="result-pvalue">—</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Degrees of Freedom</span>
+                            <span class="stat-value" id="result-df">—</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Critical Value (α=0.05)</span>
+                            <span class="stat-value" id="result-critical">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-step table -->
+                    <div class="steps-section">
+                        <h4 class="steps-title">Step-by-Step Computation</h4>
+                        <div class="steps-table-wrapper">
+                            <table class="steps-table" id="steps-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>O<sub>i</sub></th>
+                                        <th>E<sub>i</sub></th>
+                                        <th>O−E</th>
+                                        <th>(O−E)²</th>
+                                        <th>(O−E)²/E</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="steps-tbody"></tbody>
+                                <tfoot id="steps-tfoot"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="chart-section">
+                        <h4 class="chart-title">Observed vs Expected</h4>
+                        <div class="chart-container" id="chart-container">
+                            <canvas id="bar-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Formula -->
+                    <div class="formula-section">
+                        <h4 class="formula-title">Formula Used</h4>
+                        <div class="formula-box">
+                            <div class="formula">χ² = Σ (O<sub>i</sub> − E<sub>i</sub>)² / E<sub>i</sub></div>
+                            <p class="formula-note">Where O<sub>i</sub> = Observed frequency, E<sub>i</sub> = Expected frequency</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theory Section -->
+        <section class="section" id="theory">
+            <div class="section-header">
+                <h2 class="section-title">Theory</h2>
+                <p class="section-desc">Understanding the Chi-Square Goodness-of-Fit Test</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <div class="theory-icon">📐</div>
+                    <h3>What is χ² Test?</h3>
+                    <p>The Chi-Square Goodness-of-Fit test determines whether observed sample frequencies differ significantly from expected theoretical frequencies. It's a non-parametric test used when data is categorical.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="theory-icon">🎯</div>
+                    <h3>Hypotheses</h3>
+                    <p><strong>H₀ (Null):</strong> Observed data follows the expected distribution.<br>
+                    <strong>H₁ (Alternative):</strong> Observed data does NOT follow the expected distribution.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="theory-icon">📊</div>
+                    <h3>Test Statistic</h3>
+                    <p>χ² = Σ (O<sub>i</sub> − E<sub>i</sub>)² / E<sub>i</sub><br><br>
+                    Degrees of freedom: df = k − 1, where k = number of categories.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="theory-icon">⚖️</div>
+                    <h3>Decision Rule</h3>
+                    <p>At significance level α = 0.05:<br>
+                    If χ² > χ²<sub>critical</sub> → Reject H₀<br>
+                    If χ² ≤ χ²<sub>critical</sub> → Fail to reject H₀</p>
+                </div>
+                <div class="theory-card">
+                    <div class="theory-icon">⚠️</div>
+                    <h3>Assumptions</h3>
+                    <p>1. Data must be categorical (nominal/ordinal)<br>
+                    2. Observations must be independent<br>
+                    3. Expected frequency for each cell ≥ 5<br>
+                    4. Sample is randomly drawn</p>
+                </div>
+                <div class="theory-card">
+                    <div class="theory-icon">🔬</div>
+                    <h3>Applications</h3>
+                    <p>• Testing if a die is fair<br>
+                    • Genetic ratio verification (Mendel's experiments)<br>
+                    • Survey response distributions<br>
+                    • Quality control in manufacturing</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="section" id="about">
+            <div class="section-header">
+                <h2 class="section-title">About</h2>
+                <p class="section-desc">Engineering Mathematics IV Mini Project</p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>Project Details</h3>
+                    <ul class="about-list">
+                        <li><strong>Subject:</strong> Engineering Mathematics IV (BSC07)</li>
+                        <li><strong>Course:</strong> SE INFT — Semester 4</li>
+                        <li><strong>Institution:</strong> Vidyalankar Institute of Technology, Mumbai</li>
+                        <li><strong>Faculty:</strong> Dr. Uday Kashid</li>
+                        <li><strong>Topic:</strong> Chi-Square Goodness-of-Fit Test</li>
+                    </ul>
+                </div>
+                <div class="about-card">
+                    <h3>Tech Stack</h3>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Python 3.8+</span>
+                        <span class="tech-tag">Flask 3.0</span>
+                        <span class="tech-tag">SciPy</span>
+                        <span class="tech-tag">NumPy</span>
+                        <span class="tech-tag">HTML5</span>
+                        <span class="tech-tag">CSS3</span>
+                        <span class="tech-tag">JavaScript ES6+</span>
+                        <span class="tech-tag">Canvas API</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <span class="footer-text">χ² Chi-Square Analyzer — EM-IV Mini Project © 2026</span>
+            <span class="footer-text">VIT Mumbai | SE INFT</span>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
