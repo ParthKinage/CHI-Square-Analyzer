@@ -96,6 +96,15 @@
                 <p class="section-desc">Enter observed and expected frequencies to perform the χ² test</p>
             </div>
 
+            <!-- Error Resolution Panel -->
+            <div id="error-resolution-panel" class="decision-banner reject hidden-page animate-wobble" style="margin-bottom: 24px;">
+                <div class="decision-icon">⚠️</div>
+                <div style="flex: 1;">
+                    <span class="decision-label" id="error-resolution-title">Statistical Rule Violation</span>
+                    <span class="decision-detail" style="margin-top: 8px;" id="error-resolution-text"></span>
+                </div>
+            </div>
+
             <div class="calculator-grid">
                 <!-- Input Panel -->
                 <div class="card card-input" id="input-card">
@@ -172,9 +181,10 @@
                     <!-- Decision Banner -->
                     <div class="decision-banner" id="decision-banner">
                         <div class="decision-icon" id="decision-icon"></div>
-                        <div class="decision-text">
+                        <div class="decision-text" style="flex: 1;">
                             <span class="decision-label" id="decision-label"></span>
                             <span class="decision-detail" id="decision-detail"></span>
+                            <div class="decision-detail" id="detailed-conclusion" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);"></div>
                         </div>
                     </div>
 

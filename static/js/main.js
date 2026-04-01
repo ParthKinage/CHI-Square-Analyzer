@@ -562,17 +562,37 @@
             const data = await res.json();
 
             if (data.error) {
-                showToast(data.error, 'error');
+                showToast('Test Error Occurred', 'error');
                 els.btnCalculate.classList.remove('loading');
+                
+                const errPanel = document.getElementById('error-resolution-panel');
+                if (errPanel) {
+                    errPanel.classList.remove('hidden-page');
+                    let detailedText = data.error;
+                    
+                    if (data.error.includes('< 5')) {
+                        let badCats = [];
+                        for(let i=0; i<expected.length; i++) {
+                            if (expected[i] < 5) badCats.push(categories[i]);
+                        }
+                        detailedText = `<strong>What went wrong?</strong> The Chi-Square test requires all Expected frequencies to be at least 5 for the mathematical approximation to be valid.<br><br>
+                        <strong>How to fix your uploaded document:</strong> The categories <em>"${badCats.join('", "')}"</em> have expected values below 5. You must manually group (add) these categories together with adjacent categories in the table above into a new single overarching category, or collect more total data to satisfy the required 5.0 minimum expected threshold.`;
+                    }
+                    document.getElementById('error-resolution-text').innerHTML = detailedText;
+                    errPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return;
+            } else {
+                const errPanel = document.getElementById('error-resolution-panel');
+                if (errPanel) errPanel.classList.add('hidden-page');
             }
 
             state.results = { ...data, categories };
             state.testsRun++;
             els.statTests.textContent = state.testsRun;
 
-            renderResults(data, categories);
             els.resultsCard.classList.remove('hidden');
+            renderResults(data, categories);
 
             // Scroll to results on mobile
             if (window.innerWidth < 900) {
@@ -591,6 +611,11 @@
     // RESULTS RENDERING
     // ============================================================
     function renderResults(data, categories) {
+        // Steps table categories fix
+        data.steps.forEach((s, idx) => {
+             s.realCategory = categories[idx] || s.category;
+        });
+
         // Decision banner
         const isAccept = data.decision.includes('Accept');
         els.decisionBanner.className = `decision-banner ${isAccept ? 'accept' : 'reject'}`;
@@ -599,6 +624,27 @@
         els.decisionDetail.textContent = isAccept
             ? `χ² (${data.chi2}) ≤ Critical (${data.critical}) — Data fits expected distribution at α=0.05`
             : `χ² (${data.chi2}) > Critical (${data.critical}) — Data does NOT fit expected distribution at α=0.05`;
+
+        // Detailed conclusion
+        let highestContributor = null;
+        let highestVal = -1;
+        data.steps.forEach((s) => {
+            if (s.contribution > highestVal) {
+                highestVal = s.contribution;
+                highestContributor = s;
+            }
+        });
+
+        const conclusionEl = document.getElementById('detailed-conclusion');
+        if (conclusionEl) {
+            if (isAccept) {
+                conclusionEl.innerHTML = `<strong>Data Insight:</strong> Your document perfectly matches your expected statistical model! No further corrections are necessary.`;
+            } else {
+                let diffDirection = highestContributor.observed > highestContributor.expected ? 'higher' : 'lower';
+                conclusionEl.innerHTML = `<strong>Why did this test fail?</strong> The data you uploaded statistically deviates from your expected proportions.<br><br>
+                <strong>Detailed Solution & Corrective Insight:</strong> The category <em>"${highestContributor.realCategory}"</em> is the biggest reason for this deviation (contributed ${Math.round(highestContributor.contribution * 100) / 100} to the overarching χ² score). To correct your understanding or make the data fit, you must investigate why you gathered significantly ${diffDirection} observed values (${highestContributor.observed}) than your model predicted (${highestContributor.expected}) for this specific category. Your underlying expected hypothesis regarding <em>"${highestContributor.realCategory}"</em> needs to be adjusted.`;
+            }
+        }
 
         // Stat cards
         els.resultChi2.textContent = data.chi2;
@@ -620,7 +666,7 @@
         steps.forEach((s) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="font-family:var(--font-main);color:var(--text-0)">${s.category}</td>
+                <td style="font-family:var(--font-main);color:var(--text-0)">${s.realCategory || s.category}</td>
                 <td>${s.observed}</td>
                 <td>${s.expected}</td>
                 <td>${s.diff}</td>
