@@ -12,7 +12,14 @@
 </head>
 <body>
     <!-- Animated Background -->
-    <div class="bg-grid"></div>
+    <div class="bg-grid">
+        <div class="floating-symbol sym-1">χ²</div>
+        <div class="floating-symbol sym-2">∑</div>
+        <div class="floating-symbol sym-3">∫</div>
+        <div class="floating-symbol sym-4">α = 0.05</div>
+        <div class="floating-symbol sym-5">H₀</div>
+        <div class="floating-symbol sym-6">O<sub>i</sub>−E<sub>i</sub></div>
+    </div>
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
     <div class="bg-glow bg-glow-3"></div>
@@ -35,7 +42,9 @@
         </div>
     </header>
 
-    <main class="main">
+    <main class="main" id="flip-container">
+        <!-- Landing Page -->
+        <div class="page-landing" id="page-landing">
         <!-- Hero Section -->
         <section class="hero" id="hero">
             <div class="hero-content">
@@ -50,7 +59,7 @@
                     follows an expected distribution. Built for VIT Mumbai EM-IV Mini Project.
                 </p>
                 <div class="hero-actions">
-                    <a href="#calculator" class="btn btn-primary" id="hero-start-btn">
+                    <a href="javascript:void(0)" class="btn btn-primary" id="hero-start-btn">
                         <span>Start Analyzing</span>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
@@ -75,6 +84,11 @@
             </div>
         </section>
 
+        </section>
+        </div>
+
+        <!-- Main App -->
+        <div class="page-main hidden-page" id="page-main">
         <!-- Calculator Section -->
         <section class="section" id="calculator">
             <div class="section-header">
@@ -309,6 +323,7 @@
                 </div>
             </div>
         </section>
+        </div>
     </main>
 
     <!-- Footer -->

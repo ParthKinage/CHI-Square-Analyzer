@@ -203,6 +203,10 @@
 
         renderTableRows(state.rows, ds);
         updateTotal();
+
+        els.tbody.parentElement.classList.remove('animate-wobble');
+        void els.tbody.parentElement.offsetWidth; // trigger reflow
+        els.tbody.parentElement.classList.add('animate-wobble');
     }
 
     // ============================================================
@@ -779,6 +783,40 @@
     // ============================================================
     // NAVIGATION
     // ============================================================
+    function activateMainPage() {
+        const flipContainer = document.getElementById('flip-container');
+        const pageMain = document.getElementById('page-main');
+        const pageLanding = document.getElementById('page-landing');
+        
+        pageMain.classList.remove('hidden-page');
+        
+        requestAnimationFrame(() => {
+            flipContainer.classList.add('flip-active');
+            
+            setTimeout(() => {
+                pageLanding.classList.add('hidden-page');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1200); 
+        });
+    }
+
+    function activateLandingPage() {
+        const flipContainer = document.getElementById('flip-container');
+        const pageMain = document.getElementById('page-main');
+        const pageLanding = document.getElementById('page-landing');
+        
+        pageLanding.classList.remove('hidden-page');
+        
+        requestAnimationFrame(() => {
+            flipContainer.classList.remove('flip-active');
+            
+            setTimeout(() => {
+                pageMain.classList.add('hidden-page');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1200); 
+        });
+    }
+
     function setupNav() {
         els.navLinks.forEach((link) => {
             link.addEventListener('click', function (e) {
@@ -835,6 +873,17 @@
         }
         if (els.importFile) {
             els.importFile.addEventListener('change', handleFileUpload);
+        }
+        
+        const startBtn = document.getElementById('hero-start-btn');
+        if (startBtn) startBtn.addEventListener('click', activateMainPage);
+
+        const logoBtn = document.querySelector('.logo');
+        if (logoBtn) {
+            logoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                activateLandingPage();
+            });
         }
 
         setupNav();
