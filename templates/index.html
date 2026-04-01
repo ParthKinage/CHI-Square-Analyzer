@@ -91,6 +91,13 @@
                             Input Data
                         </h3>
                         <div class="card-actions">
+                            <button class="btn-icon" id="btn-import-csv" title="Import Data">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            </button>
+                            <button class="btn-icon" id="btn-save-case" title="Save Custom Case">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            </button>
+                            <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px; align-self: center;"></div>
                             <button class="btn-icon" id="btn-add-row" title="Add category">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
                             </button>
@@ -312,6 +319,39 @@
         </div>
     </footer>
 
+    <div class="modal-overlay hidden" id="import-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Import Data</h3>
+                <button class="btn-icon" id="btn-close-import">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-methods">
+                    <div class="import-method">
+                        <label for="import-file" class="btn btn-ghost" style="width:100%;text-align:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Upload Excel or CSV File</span>
+                        </label>
+                        <input type="file" id="import-file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden" style="display:none;" />
+                    </div>
+                    <div class="import-divider" style="text-align:center; margin:16px 0; color:var(--text-2); font-size:0.7rem; letter-spacing:2px; display:flex; align-items:center;">
+                        <span style="flex:1; height:1px; background:var(--border);"></span>
+                        <span style="padding:0 12px; font-family:var(--font-mono);">OR PASTE DATA</span>
+                        <span style="flex:1; height:1px; background:var(--border);"></span>
+                    </div>
+                    <div class="import-method">
+                        <p style="font-size: 0.8rem; margin-bottom: 8px;">Format: Category, Observed, Expected</p>
+                        <textarea id="import-textarea" placeholder="e.g.&#10;Heads, 55, 0.5&#10;Tails, 45, 0.5"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btn-process-import">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

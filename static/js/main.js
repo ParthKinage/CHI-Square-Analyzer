@@ -11,7 +11,7 @@
     // ============================================================
     const CONFIG = {
         MIN_ROWS: 2,
-        MAX_ROWS: 20,
+        MAX_ROWS: 500,
         DEFAULT_ROWS: 6,
         API_ENDPOINT: '/calculate',
     };
@@ -70,6 +70,13 @@
         btnRemove: $('#btn-remove-row'),
         btnClear: $('#btn-clear'),
         btnCalculate: $('#btn-calculate'),
+        btnImportCsv: $('#btn-import-csv'),
+        btnSaveCase: $('#btn-save-case'),
+        btnProcessImport: $('#btn-process-import'),
+        btnCloseImport: $('#btn-close-import'),
+        importModal: $('#import-modal'),
+        importTextarea: $('#import-textarea'),
+        importFile: $('#import-file'),
         sampleChips: $('#sample-chips'),
         resultsCard: $('#results-card'),
         inputCard: $('#input-card'),
@@ -93,11 +100,27 @@
     // INITIALIZATION
     // ============================================================
     function init() {
+        loadCustomCases();
         renderSampleChips();
         renderTableRows(CONFIG.DEFAULT_ROWS);
         bindEvents();
         loadConfig();
         updateTotal();
+    }
+
+    function loadCustomCases() {
+        try {
+            const saved = localStorage.getItem('customDatasets');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                for (const key in parsed) {
+                    parsed[key].isCustom = true;
+                }
+                DATASETS = { ...DATASETS, ...parsed };
+            }
+        } catch (e) {
+            console.error('Failed to load custom cases', e);
+        }
     }
 
     async function loadConfig() {
@@ -135,12 +158,37 @@
         els.sampleChips.innerHTML = '';
         for (const [key, ds] of Object.entries(DATASETS)) {
             const chip = document.createElement('button');
-            chip.className = 'chip';
+            chip.className = ds.isCustom ? 'chip custom-chip' : 'chip';
+            if (state.activeDataset === key) chip.classList.add('active');
             chip.dataset.key = key;
             chip.textContent = ds.label;
             chip.addEventListener('click', () => loadDataset(key));
+
+            if (ds.isCustom) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'chip-delete';
+                delBtn.innerHTML = '&times;';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteCustomCase(key);
+                });
+                chip.appendChild(delBtn);
+            }
+
             els.sampleChips.appendChild(chip);
         }
+    }
+
+    function deleteCustomCase(key) {
+        if (!confirm('Delete this custom case?')) return;
+        delete DATASETS[key];
+        try {
+            const saved = JSON.parse(localStorage.getItem('customDatasets') || '{}');
+            delete saved[key];
+            localStorage.setItem('customDatasets', JSON.stringify(saved));
+        } catch(e) {}
+        if (state.activeDataset === key) clearAll();
+        renderSampleChips();
     }
 
     function loadDataset(key) {
@@ -188,7 +236,7 @@
 
     function addRow() {
         if (state.rows >= CONFIG.MAX_ROWS) {
-            showToast('Maximum 20 categories allowed', 'error');
+            showToast(`Maximum ${CONFIG.MAX_ROWS} categories allowed`, 'error');
             return;
         }
         state.rows++;
@@ -231,6 +279,230 @@
             if (!isNaN(val)) total += val;
         });
         els.totalObserved.textContent = total;
+    }
+
+    // ============================================================
+    // CUSTOM CASES & IMPORT
+    // ============================================================
+    function saveCustomCase() {
+        const observed = [];
+        const expected = [];
+        const categories = [];
+
+        const obsInputs = els.tbody.querySelectorAll('.input-observed');
+        const expInputs = els.tbody.querySelectorAll('.input-expected');
+        const catInputs = els.tbody.querySelectorAll('.input-category');
+
+        for (let i = 0; i < state.rows; i++) {
+            const o = parseFloat(obsInputs[i].value);
+            const e = parseFloat(expInputs[i].value);
+            const c = catInputs[i].value.trim() || `Category ${i + 1}`;
+            
+            if (isNaN(o) || isNaN(e)) {
+                showToast('Please fill all observed and expected values before saving', 'error');
+                return;
+            }
+            observed.push(o);
+            expected.push(e);
+            categories.push(c);
+        }
+
+        const label = prompt("Enter a name for this custom dataset:", "My Case");
+        if (!label) return;
+
+        const key = 'custom_' + Date.now();
+        const ds = { label, observed, proportions: expected, categories, isCustom: true };
+
+        DATASETS[key] = ds;
+        
+        try {
+            const saved = JSON.parse(localStorage.getItem('customDatasets') || '{}');
+            saved[key] = ds;
+            localStorage.setItem('customDatasets', JSON.stringify(saved));
+            showToast('Custom case saved!', 'success');
+            renderSampleChips();
+            loadDataset(key);
+        } catch(e) {
+            showToast('Failed to save case', 'error');
+        }
+    }
+
+    function openImportModal() {
+        els.importTextarea.value = '';
+        els.importModal.classList.remove('hidden');
+    }
+
+    function closeImportModal() {
+        els.importModal.classList.add('hidden');
+        if (els.importFile) els.importFile.value = '';
+    }
+
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        els.btnProcessImport.classList.add('loading');
+        els.btnProcessImport.textContent = 'Parsing...';
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const data = new Uint8Array(evt.target.result);
+            try {
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                
+                const dataset = { categories: [], observed: [], proportions: [], isCustom: true };
+                
+                let rawStrings = [];
+                let hasNumbers = false;
+
+                for (let row of rows) {
+                    if (!row || row.length === 0) continue;
+                    
+                    let parts = Array.isArray(row) ? row : [row];
+                    if (parts.length === 1 && typeof parts[0] === 'string') {
+                        parts = parts[0].split(/[,\\t]+/).map(s => s.trim());
+                    }
+
+                    let nums = [];
+                    let cats = [];
+                    for (let p of parts) {
+                        let strP = String(p).trim();
+                        if (strP === '') continue;
+                        let n = parseFloat(strP);
+                        if (!isNaN(n)) {
+                            nums.push(n);
+                            hasNumbers = true;
+                        } else {
+                            cats.push(strP);
+                            rawStrings.push(strP);
+                        }
+                    }
+
+                    if (nums.length > 0) {
+                        dataset.categories.push(cats.length > 0 ? cats[0] : `Cat ${dataset.categories.length + 1}`);
+                        dataset.observed.push(nums[0]);
+                        dataset.proportions.push(nums.length > 1 ? nums[1] : null);
+                    }
+                }
+
+                if (!hasNumbers && rawStrings.length > 1) {
+                    const counts = {};
+                    rawStrings.forEach(val => counts[val] = (counts[val] || 0) + 1);
+                    for (const [cat, count] of Object.entries(counts)) {
+                        dataset.categories.push(cat);
+                        dataset.observed.push(count);
+                        dataset.proportions.push(null);
+                    }
+                }
+                
+                let totalCats = dataset.categories.length;
+                let defaultProp = totalCats > 0 ? (1 / totalCats) : 0;
+                for (let i = 0; i < totalCats; i++) {
+                    if (dataset.proportions[i] === null) {
+                        dataset.proportions[i] = parseFloat(defaultProp.toFixed(4));
+                    }
+                }
+                
+                if (dataset.observed.length < 2) {
+                    showToast('Could not parse at least 2 rows of data from file', 'error');
+                    return;
+                }
+                
+                let rowCount = dataset.observed.length;
+                if (rowCount > CONFIG.MAX_ROWS) {
+                    showToast(`Truncated to max ${CONFIG.MAX_ROWS} rows`, 'info');
+                    rowCount = CONFIG.MAX_ROWS;
+                    dataset.categories = dataset.categories.slice(0, rowCount);
+                    dataset.observed = dataset.observed.slice(0, rowCount);
+                    dataset.proportions = dataset.proportions.slice(0, rowCount);
+                }
+                
+                // Use original file name without extension
+                let label = file.name.replace(/\.[^/.]+$/, "");
+                dataset.label = label;
+                
+                // Save it like saveCustomCase
+                const key = 'custom_' + Date.now();
+                DATASETS[key] = dataset;
+                try {
+                    const saved = JSON.parse(localStorage.getItem('customDatasets') || '{}');
+                    saved[key] = dataset;
+                    localStorage.setItem('customDatasets', JSON.stringify(saved));
+                } catch(e) {}
+                
+                closeImportModal();
+                showToast(`Loaded ${label}`, 'success');
+                renderSampleChips();
+                loadDataset(key);
+                
+                // Automatically run calculation
+                setTimeout(() => runCalculation(), 200);
+
+            } catch(error) {
+                console.error(error);
+                showToast('Failed to parse Excel/CSV file. Ensure it is a valid spreadsheet.', 'error');
+            } finally {
+                els.btnProcessImport.classList.remove('loading');
+                els.btnProcessImport.textContent = 'Import';
+                els.importFile.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function processImport() {
+        const text = els.importTextarea.value.trim();
+        if (!text) {
+            showToast('Please enter some data', 'error');
+            return;
+        }
+
+        const lines = text.split('\n');
+        const dataset = { categories: [], observed: [], proportions: [] };
+
+        for (let line of lines) {
+            if (!line.trim()) continue;
+            // Split by comma or tab
+            const parts = line.split(/[,\\t]+/).map(s => s.trim());
+            
+            if (parts.length >= 3) {
+                dataset.categories.push(parts[0]);
+                const o = parseFloat(parts[1]);
+                const e = parseFloat(parts[2]);
+                dataset.observed.push(isNaN(o) ? 0 : o);
+                dataset.proportions.push(isNaN(e) ? 0 : e);
+            } else if (parts.length === 2) {
+                dataset.categories.push(`Cat ${dataset.categories.length + 1}`);
+                const o = parseFloat(parts[0]);
+                const e = parseFloat(parts[1]);
+                dataset.observed.push(isNaN(o) ? 0 : o);
+                dataset.proportions.push(isNaN(e) ? 0 : e);
+            }
+        }
+
+        if (dataset.observed.length < 2) {
+            showToast('Could not parse at least 2 rows of data', 'error');
+            return;
+        }
+        
+        let rows = dataset.observed.length;
+        if (rows > CONFIG.MAX_ROWS) {
+            showToast(`Truncated to max ${CONFIG.MAX_ROWS} rows`, 'info');
+            rows = CONFIG.MAX_ROWS;
+            dataset.categories = dataset.categories.slice(0, rows);
+            dataset.observed = dataset.observed.slice(0, rows);
+            dataset.proportions = dataset.proportions.slice(0, rows);
+        }
+
+        state.activeDataset = null;
+        $$('.chip').forEach(c => c.classList.remove('active'));
+        renderTableRows(rows, dataset);
+        updateTotal();
+        closeImportModal();
+        showToast('Data imported successfully', 'success');
     }
 
     // ============================================================
@@ -551,6 +823,20 @@
         els.btnRemove.addEventListener('click', removeRow);
         els.btnClear.addEventListener('click', clearAll);
         els.btnCalculate.addEventListener('click', runCalculation);
+        
+        if (els.btnSaveCase) els.btnSaveCase.addEventListener('click', saveCustomCase);
+        if (els.btnImportCsv) els.btnImportCsv.addEventListener('click', openImportModal);
+        if (els.btnProcessImport) els.btnProcessImport.addEventListener('click', processImport);
+        if (els.btnCloseImport) els.btnCloseImport.addEventListener('click', closeImportModal);
+        if (els.importModal) {
+            els.importModal.addEventListener('click', (e) => {
+                if (e.target === els.importModal) closeImportModal();
+            });
+        }
+        if (els.importFile) {
+            els.importFile.addEventListener('change', handleFileUpload);
+        }
+
         setupNav();
 
         // Redraw chart on resize
