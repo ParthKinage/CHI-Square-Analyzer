@@ -48,6 +48,8 @@ The application demonstrates the practical implementation of the **Chi-Square (�
 | 📝 **Step-by-Step Breakdown** | Detailed computation table showing (O−E), (O−E)², and (O−E)²/E for each category |
 | 📦 **Sample Datasets** | 5 pre-loaded datasets (dice rolls, coin flips, blood types, surveys, traffic) |
 | ✅ **Hypothesis Decision** | Automatic Accept/Reject H₀ decision with critical value comparison |
+| 🎚️ **Configurable Alpha** | Choose significance level α = 0.01, 0.05, or 0.10 for flexible hypothesis testing |
+| 📤 **Export to CSV** | Download full results (stats + step table) as a `.csv` file via `/export` endpoint |
 | 📱 **Responsive Design** | Fully responsive — works on desktop, tablet, and mobile |
 | 🎨 **Premium Dark UI** | Glassmorphism design with animated backgrounds and micro-interactions |
 | ⌨️ **Keyboard Shortcut** | Press `Ctrl+Enter` to run the test |
@@ -73,8 +75,8 @@ The application demonstrates the practical implementation of the **Chi-Square (�
 #### Windows
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/chi-square-analyzer.git
-cd chi-square-analyzer
+git clone https://github.com/ParthKinage/CHI-Square-Analyzer.git
+cd CHI-Square-Analyzer
 
 # Double-click start.bat OR run:
 start.bat
@@ -83,8 +85,8 @@ start.bat
 #### Mac / Linux
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/chi-square-analyzer.git
-cd chi-square-analyzer
+git clone https://github.com/ParthKinage/CHI-Square-Analyzer.git
+cd CHI-Square-Analyzer
 
 # Run setup script
 chmod +x start.sh
@@ -95,8 +97,8 @@ bash start.sh
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/chi-square-analyzer.git
-cd chi-square-analyzer
+git clone https://github.com/ParthKinage/CHI-Square-Analyzer.git
+cd CHI-Square-Analyzer
 
 # 2. Create virtual environment
 python -m venv venv
